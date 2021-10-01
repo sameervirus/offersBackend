@@ -3,7 +3,6 @@ import { createConnection, getRepository } from "typeorm";
 import { User } from "../entity/User";
 import bcrypt = require("bcrypt");
 import jwt = require("jsonwebtoken");
-import auth = require("../middleware/auth");
 
 createConnection();
 const login = async (req: Request, res: Response, next: NextFunction) => {
@@ -21,9 +20,13 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
 
     if (user && (await bcrypt.compare(password, user.password))) {
       // Create token
-      const token = jwt.sign({ user_id: user.id, email }, "zAqWsXcDeRfvBGT", {
-        expiresIn: "30d",
-      });
+      const token = jwt.sign(
+        { user_id: user.id, email },
+        process.env.TOKEN_KEY!,
+        {
+          expiresIn: "30d",
+        }
+      );
 
       // save user token
       user.token = token;
@@ -69,9 +72,13 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
     await getRepository(User).save(user);
 
     // Create token
-    const token = jwt.sign({ user_id: user.id, email }, "zAqWsXcDeRfvBGT", {
-      expiresIn: "2h",
-    });
+    const token = jwt.sign(
+      { user_id: user.id, email },
+      process.env.TOKEN_KEY!,
+      {
+        expiresIn: "2h",
+      }
+    );
     // save user token
     user.token = token;
     await getRepository(User).save(user);
